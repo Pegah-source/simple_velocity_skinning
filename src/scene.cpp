@@ -29,6 +29,7 @@ void scene_structure::compute_deformation()
 	float const t = timer.t;
 
 	skinning_data.skeleton_current = skeleton_data.evaluate_global(t);
+	// to update the skeleton_drawable
 	visual_data.skeleton_current.update(skinning_data.skeleton_current, skeleton_data.parent_index);
 
 	// Compute skinning deformation
@@ -36,8 +37,9 @@ void scene_structure::compute_deformation()
 		skinning_data.skeleton_current, skinning_data.skeleton_rest_pose,
 		skinning_data.position_rest_pose, skinning_data.normal_rest_pose,
 		rig);
-	
+	// to update the position of mesh_drawable
 	visual_data.surface_skinned.update_position(skinning_data.position_skinned);
+	// to update the normal of mesh_drawable
 	visual_data.surface_skinned.update_normal(skinning_data.normal_skinned);
 
 }
@@ -48,6 +50,9 @@ void scene_structure::display()
 	// Update the current time
 	timer.update();
 
+	// compute deformation:
+	// 1. updating the skinning_data (contains: position, normal, skeleton in current and rest)
+	// 2. updating the skeleton and mesh drawables in visual_data
 	compute_deformation();
 	
 	environment.light = environment.camera.position();

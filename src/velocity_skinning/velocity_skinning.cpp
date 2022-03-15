@@ -4,9 +4,8 @@ namespace cgp
 {
 
     void initialize_bones_graph(bones_graph &graph,
-                              skeleton_animation_structure anim_struct)
+                                buffer<int> parent_index)
     {
-        buffer<int> parent_index = anim_struct.parent_index;
         int N_joint = parent_index.size();
         // initialize the components of the graph:
         graph.root = 0;
@@ -23,7 +22,7 @@ namespace cgp
 
     }
 
-    void initialize_v_weights(velocity_rig_structure &v_rig,
+    void initialize_v_weights(buffer<buffer<float>> &v_skinning_weights,
                               bones_graph &graph,
                               rig_structure rig)
     {
@@ -32,11 +31,13 @@ namespace cgp
         assert_cgp_no_msg(rig.weight.size()==N_vertex);
 		
         // initialize the velocity_rig_structure:
-        v_rig.resize(N_vertex);
+        v_skinning_weights.resize(N_vertex);
+
+
 
         for(int u = 0; u < N_vertex; u++){
             // to be filled with right values
-            buffer<float> &v_rig_vertex = v_rig[u];
+            buffer<float> &v_rig_vertex = v_skinning_weights[u];
 
 
             // rig information
@@ -50,19 +51,18 @@ namespace cgp
 
             // initialize all the weights with LBS weights
             // for all the joints that are connected to the bone u
-
             for(int i = 0; i < N_connected_joints; i++){
                 int joint_index = connected_joints[i];
                 float joint_weight = connected_joints_weights[i];
                 v_rig_vertex[joint_index] += joint_weight;
             }
 
-            // graph information
             int root = graph.root:
+            // make a copy of graph information:
+            // MAKE SURE THAT IT REALLY COPIES!!
             buffer<bone_node> Nodes = graph.Nodes;
             buffer<int> N_children = graph.N_children;
             assert_cgp_no_msg(N_children.size()==N_joint);
-
 
             bone_node current_node = Nodes[root];
             int current_node_index = root;
