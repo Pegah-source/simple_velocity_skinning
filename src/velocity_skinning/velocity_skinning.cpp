@@ -97,6 +97,52 @@ namespace cgp
         }
     }
 
+    velocity_components_one_frame cal_comp_velocities(buffer<affine_rt> current_local_skeleton,
+                                                      buffer<affine_rt> last_local_skeleton)
+    {
+        int N_joint = current_local_skeleton.size();
+
+
+        velocity_components v_components;
+        buffer<vec3> translational_velocities = &v_components.translational_velocities;
+        buffer<vec3> angular_velocities = &v_components.angular_velocities;
+        translational_velocities.resize(N_joint);
+        angular_velocities.resize(N_joint);
+        buffer<quaternion_dual> dq;
+		dq.resize(N_joint);
+
+        // the velocity should be calculated for each joint
+        for(int j = 0; j < N_joint; j++){
+            // last_local_skeleton and current_local_skeleton
+            // translation from the last frame:
+            rotation_transform const& r  = current_local_skeleton[j].rotation;
+			rotation_transform const& r0 = last_local_skeleton[j].rotation;
+			vec3 const& t = current_local_skeleton[j].translation;
+			vec3 const& t0 = last_local_skeleton[j].translation;
+			dq  = quaternion_dual( (r*inverse(r0)).data, r*inverse(r0)*(-t0)+t );
+            translational_velocities[j] = t - t0;
+
+            // to extract the rotational velocity
+            rotation_transform rot = = rotation_transform(dq.q); 
+
+            /*quaternion Q1 = current_local_skeleton[j].rotation_transform.data;
+            quaternion Q2 = last_local_skeleton[j].rotation_transform.data;
+
+            quaternion Qprime = current_local_skeleton * inverse(last_local_skeleton);
+            rotation_transform rot = from_quaternion(Qprime);*/
+
+            vec3 axis; float angle;
+            rot.to_axis_angle(vec3& axis, float& angle);
+            
+
+            angular_velocities[j] = axis*angle;
+        }
+
+
+        return v_components;
+    }
+
+
 	
 #ifdef SOLUTION
 quaternion_dual::quaternion_dual()

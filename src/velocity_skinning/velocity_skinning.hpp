@@ -27,7 +27,17 @@ namespace cgp
                                 buffer<int> parent_index);
     
     // function to traverse the graph and compute the velocity skinning weights
-	void initialize_v_weights(velocity_rig_structure &v_rig,
+	void initialize_v_weights(buffer<buffer<float>> &v_skinning_weights;,
                               bones_graph &graph,
                               rig_structure rig);
+
+    struct velocity_components{
+        buffer<vec3> translational_velocities; // of size N_joint, for each call of compute_deformation in scene
+        buffer<vec3> angular_velocities;
+    };
+
+
+    velocity_components_one_frame cal_comp_velocities(buffer<affine_rt> current_local_skeleton,
+                                                      buffer<affine_rt> last_local_skeleton);
+    
 }
