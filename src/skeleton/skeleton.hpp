@@ -15,9 +15,6 @@ namespace cgp
 		buffer<buffer<affine_rt> > animation_geometry_local; // Storage of all rigid transforms of the joints for every frame in local coordinates (for all time, for all joints)
 
 
-		buffer<int> get_parent_index();
-		buffer<float> get_animation_time();
-		buffer<buffer<affine_rt> > get_animation();
 		// Number of joints in the skeleton
 		size_t number_joint() const;
 		// Number of frames of the animation

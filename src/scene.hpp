@@ -5,7 +5,10 @@
 #include "skeleton/skeleton.hpp"
 #include "skeleton/skeleton_drawable.hpp"
 #include "skinning/skinning.hpp"
-#include "velocity_skinning/velocity_skinning.hpp"
+#include "velocity_skinning/velocity_skinning_weights.hpp"
+#include "velocity_skinning/velocity_components.hpp"
+#include "velocity_skinning/displacement.hpp"
+
 
 
 
@@ -53,6 +56,12 @@ struct scene_structure {
 	// ****************************** //
 	// Elements and shapes of the scene
 	// ****************************** //
+	
+	/*
+	* velocity related variables:
+	*/
+	bool starting_moment;
+	cgp::displacement disp;
 
 	cgp::timer_interval timer;
 
@@ -64,7 +73,6 @@ struct scene_structure {
 	visual_shapes_parameters visual_data;
 	cgp::skeleton_animation_structure skeleton_data;
 	cgp::rig_structure rig;
-	cgp::velocity_rig_structure velocity_rig;
 	skinning_current_data skinning_data;
 
 	// ****************************** //

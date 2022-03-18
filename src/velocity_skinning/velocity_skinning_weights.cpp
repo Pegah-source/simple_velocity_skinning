@@ -1,17 +1,22 @@
-#include "skinning.hpp"
+#include "velocity_skinning_weights.hpp"
 
 namespace cgp
 {
-
-    void initialize_bones_graph(bones_graph &graph,
-                                buffer<int> parent_index)
-    {
+    void velocity_weights::initialize_v_weight_struct(buffer<int> parent_index_, rig_structure rig_){
+        rig = rig_;
+        parent_index = parent_index_;
+        int N_vertex = rig.joint.size();
         int N_joint = parent_index.size();
+        v_skinning_weights.resize(N_vertex);
         // initialize the components of the graph:
         graph.root = 0;
         graph.Nodes.resize(N_joint); // each element => bone_node => children and parent
         graph.N_children.resize(N_joint);
         graph.N_children.fill(0);
+
+    }
+
+    void velocity_weights::initialize_bones_graph(){
 
         for(int b = 0; b < N_joint; b++){
             int parent_b = parent_index[b];
@@ -22,18 +27,11 @@ namespace cgp
 
     }
 
-    void initialize_v_weights(buffer<buffer<float>> &v_skinning_weights,
-                              bones_graph &graph,
-                              rig_structure rig)
-    {
+    void velocity_weights::cal_v_weights(){
+
         int N_vertex = rig.joint.size();
         int N_joint = graph.Nodes.size();
         assert_cgp_no_msg(rig.weight.size()==N_vertex);
-		
-        // initialize the velocity_rig_structure:
-        v_skinning_weights.resize(N_vertex);
-
-
 
         for(int u = 0; u < N_vertex; u++){
             // to be filled with right values
@@ -42,9 +40,9 @@ namespace cgp
 
             // rig information
             buffer<int> connected_joints = rig.joint[u];
-            buffer<int> connected_joints_weights = rig.weight[u];
+            buffer<float> connected_joints_weights = rig.weight[u];
             int N_connected_joints = connected_joints.size();
-            assert_cgp_no_msg(rig.connected_joints_weights.size()==N_connected_joints);
+            assert_cgp_no_msg(connected_joints_weights.size()==N_connected_joints);
 
             v_rig_vertex.resize(N_joint);
             v_rig_vertex.fill(0);
@@ -57,7 +55,7 @@ namespace cgp
                 v_rig_vertex[joint_index] += joint_weight;
             }
 
-            int root = graph.root:
+            int root = graph.root;
             // make a copy of graph information:
             // MAKE SURE THAT IT REALLY COPIES!!
             buffer<bone_node> Nodes = graph.Nodes;
@@ -66,7 +64,7 @@ namespace cgp
 
             bone_node current_node = Nodes[root];
             int current_node_index = root;
-            bool TheEnd = False;
+            bool TheEnd = false;
 
             // Traverse the graph with algorithm 2 (in the report), update weights
 
@@ -96,52 +94,6 @@ namespace cgp
 
         }
     }
-
-    velocity_components_one_frame cal_comp_velocities(buffer<affine_rt> current_local_skeleton,
-                                                      buffer<affine_rt> last_local_skeleton)
-    {
-        int N_joint = current_local_skeleton.size();
-
-
-        velocity_components v_components;
-        buffer<vec3> translational_velocities = &v_components.translational_velocities;
-        buffer<vec3> angular_velocities = &v_components.angular_velocities;
-        translational_velocities.resize(N_joint);
-        angular_velocities.resize(N_joint);
-        buffer<quaternion_dual> dq;
-		dq.resize(N_joint);
-
-        // the velocity should be calculated for each joint
-        for(int j = 0; j < N_joint; j++){
-            // last_local_skeleton and current_local_skeleton
-            // translation from the last frame:
-            rotation_transform const& r  = current_local_skeleton[j].rotation;
-			rotation_transform const& r0 = last_local_skeleton[j].rotation;
-			vec3 const& t = current_local_skeleton[j].translation;
-			vec3 const& t0 = last_local_skeleton[j].translation;
-			dq  = quaternion_dual( (r*inverse(r0)).data, r*inverse(r0)*(-t0)+t );
-            translational_velocities[j] = t - t0;
-
-            // to extract the rotational velocity
-            rotation_transform rot = = rotation_transform(dq.q); 
-
-            /*quaternion Q1 = current_local_skeleton[j].rotation_transform.data;
-            quaternion Q2 = last_local_skeleton[j].rotation_transform.data;
-
-            quaternion Qprime = current_local_skeleton * inverse(last_local_skeleton);
-            rotation_transform rot = from_quaternion(Qprime);*/
-
-            vec3 axis; float angle;
-            rot.to_axis_angle(vec3& axis, float& angle);
-            
-
-            angular_velocities[j] = axis*angle;
-        }
-
-
-        return v_components;
-    }
-
 
 	
 #ifdef SOLUTION

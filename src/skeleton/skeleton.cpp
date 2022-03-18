@@ -65,15 +65,7 @@ namespace cgp
 
 		return skeleton_current;
 	}
-	buffer<int> get_parent_index(){
-		return parent_index;
-	}
-	buffer<float> get_animation_time(){
-		return animation_time;
-	}
-	buffer<buffer<affine_rt> > get_animation(){
-		return animation_geometry_local;
-	}
+	
 	size_t skeleton_animation_structure::number_joint() const
 	{
 		return parent_index.size();

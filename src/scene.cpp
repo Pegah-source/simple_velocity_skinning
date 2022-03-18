@@ -11,6 +11,8 @@ void scene_structure::initialize()
 	// *************************************** //
 
 	// Create a visual frame representing the coordinate system
+	starting_moment = true;
+	
 	global_frame.initialize(mesh_primitive_frame(), "Frame");
 	
 	mesh shape;
@@ -19,6 +21,8 @@ void scene_structure::initialize()
 		skeleton_data.animation_time,
 		skeleton_data.parent_index);
 	update_new_content(shape, mesh_drawable::default_texture);
+
+	initialize_disp(disp,skeleton_data.parent_index, rig);
 
 }
 
@@ -37,6 +41,27 @@ void scene_structure::compute_deformation()
 		skinning_data.skeleton_current, skinning_data.skeleton_rest_pose,
 		skinning_data.position_rest_pose, skinning_data.normal_rest_pose,
 		rig);
+	
+	// the displacements from velocity effect should be added here
+	// buffers to change: skinning_data.position_skinned
+	int N_joint = skinning_data.skeleton_current.size();
+	buffer<cgp::vec3> joint_positions;
+	joint_positions.resize(N_joint);
+	for(int i = 0; i < N_joint; i++){
+		// the translational part of the skeleton
+		joint_positions[i] = skinning_data.skeleton_current[i].translation;
+	}
+	std::cout << "before: " << skinning_data.position_skinned[0] << std::endl;
+
+	if(starting_moment){
+		adding_velocity_def(disp, skinning_data.skeleton_current, true, skinning_data.position_skinned, joint_positions);
+		starting_moment = false;
+	}else{
+		adding_velocity_def(disp, skinning_data.skeleton_current, false, skinning_data.position_skinned, joint_positions);
+	}
+
+	std::cout << "after: " << skinning_data.position_skinned[0] << std::endl;
+
 	// to update the position of mesh_drawable
 	visual_data.surface_skinned.update_position(skinning_data.position_skinned);
 	// to update the normal of mesh_drawable
